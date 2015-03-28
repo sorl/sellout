@@ -60,9 +60,8 @@ def merge_attrs(mixins, attrs):
                 fields[f.name] = f
     for k, v in attrs.items():
         if isinstance(v, Field):
-            attrs.pop(k)
-            if k not in fields:
-                fields[k] = v
+            if k in fields:
+                attrs.pop(k)
     attrs.update(fields)
 
 
