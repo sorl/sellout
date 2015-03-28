@@ -3,7 +3,6 @@ from django.apps import apps
 from django.conf import settings
 from django.db.models.base import ModelBase
 from django.db import models
-from django.db.models.fields import Field
 
 
 _mixin_registry = {}
@@ -64,8 +63,7 @@ def add_mixins(name, attrs):
 class ExtendableMeta(ModelBase):
     def __new__(cls, name, bases, attrs):
         add_mixins(name, attrs)
-        model = ModelBase.__new__(cls, name, bases, attrs)
-        return model
+        return ModelBase.__new__(cls, name, bases, attrs)
 
 
 class ExtendableModel(six.with_metaclass(ExtendableMeta, models.Model)):
