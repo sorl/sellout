@@ -40,7 +40,7 @@ def get_registered_mixins(module, name):
     return all_mixins
 
 
-def merge_mixins(mixins, attrs):
+def merge_mixins(name, attrs):
     """
     Merges attrs from all mixins in to attrs
     """
@@ -48,6 +48,8 @@ def merge_mixins(mixins, attrs):
     # TODO make sure meta attributes are correctly transferred
     # or maybe not? What do we want besides fields and normal methods?
     #
+    module = attrs['__module__']
+    mixins = get_registered_mixins(module, name)
     if not mixins:
         return
     new_attrs = {}
@@ -61,9 +63,7 @@ def merge_mixins(mixins, attrs):
 
 class ExtendableMeta(ModelBase):
     def __new__(cls, name, bases, attrs):
-        module = attrs['__module__']
-        mixins = get_registered_mixins(module, name)
-        merge_mixins(mixins, attrs)
+        merge_mixins(name, attrs)
         model = ModelBase.__new__(cls, name, bases, attrs)
         return model
 
