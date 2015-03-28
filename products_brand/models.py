@@ -9,21 +9,15 @@ class Brand(ExtendableModel):
         return self.name
 
 
-class ProductMixin(models.Model):
+class ProductMixin(object):
     brand = models.ForeignKey(Brand)
 
     def __unicode__(self):
         return u'%s -- %s' % (self.title, self.brand)
 
-    class Meta:
-        abstract = True
 
-
-class ProductShippingMixin(models.Model):
+class ProductShippingMixin(object):
     shippings = models.CharField(max_length=500)
-
-    class Meta:
-        abstract = True
 
 
 extend_model(u'products.Product', ProductMixin)

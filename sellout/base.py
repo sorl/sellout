@@ -4,7 +4,6 @@ from django.conf import settings
 from django.db.models.base import ModelBase
 from django.db import models
 from django.db.models.fields import Field
-from itertools import chain
 
 
 _mixin_registry = {}
@@ -41,35 +40,31 @@ def get_registered_mixins(module, name):
     return all_mixins
 
 
-def merge_attrs(mixins, attrs):
+def merge_mixins(mixins, attrs):
     """
-    pops and returns model fields in attrs
+    Merges attrs from all mixins in to attrs
     """
     #
-    # TODO megre methods and meta attributes
+    # TODO make sure meta attributes are correctly transferred
     #
-    fields = {}
-    for mixin in mixins:
-        mixin_fields = chain(
-            mixin._meta.local_fields,
-            mixin._meta.local_many_to_many,
-            mixin._meta.virtual_fields,
-        )
-        for f in mixin_fields:
-            if f.name not in fields:
-                fields[f.name] = f
+    new_attrs = {}
+    not_keys = dict(object.__dict__).keys() + ['__dict__', '__module__', '__weakref__']
+    if mixins:
+        Mixins = type('Mixins', tuple(mixins), {})
+        for k in dir(Mixins):
+            if k not in not_keys:
+                new_attrs[k] = getattr(Mixins, k)
     for k, v in attrs.items():
-        if isinstance(v, Field):
-            if k in fields:
-                attrs.pop(k)
-    attrs.update(fields)
+        if isinstance(v, Field) and k in new_attrs:
+            attrs.pop(k)
+    attrs.update(new_attrs)
 
 
 class ExtendableMeta(ModelBase):
     def __new__(cls, name, bases, attrs):
         module = attrs['__module__']
         mixins = get_registered_mixins(module, name)
-        merge_attrs(mixins, attrs)
+        merge_mixins(mixins, attrs)
         model = ModelBase.__new__(cls, name, bases, attrs)
         return model
 
