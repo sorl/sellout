@@ -40,7 +40,7 @@ def get_registered_mixins(module, name):
     return all_mixins
 
 
-def merge_mixins(name, attrs):
+def add_mixins(name, attrs):
     """
     Merges attrs from all mixins in to attrs
     """
@@ -63,7 +63,7 @@ def merge_mixins(name, attrs):
 
 class ExtendableMeta(ModelBase):
     def __new__(cls, name, bases, attrs):
-        merge_mixins(name, attrs)
+        add_mixins(name, attrs)
         model = ModelBase.__new__(cls, name, bases, attrs)
         return model
 
