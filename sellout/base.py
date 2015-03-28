@@ -48,13 +48,14 @@ def merge_mixins(mixins, attrs):
     # TODO make sure meta attributes are correctly transferred
     # or maybe not? What do we want besides fields and normal methods?
     #
+    if not mixins:
+        return
     new_attrs = {}
     not_keys = dict(object.__dict__).keys() + ['__dict__', '__module__', '__weakref__']
-    if mixins:
-        Mixins = type('Mixins', tuple(mixins), {})
-        for k in dir(Mixins):
-            if k not in not_keys:
-                new_attrs[k] = getattr(Mixins, k)
+    Mixins = type('Mixins', tuple(mixins), {})
+    for k in dir(Mixins):
+        if k not in not_keys:
+            new_attrs[k] = getattr(Mixins, k)
     attrs.update(new_attrs)
 
 
