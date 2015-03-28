@@ -19,4 +19,12 @@ class ProductMixin(models.Model):
         abstract = True
 
 
+class ProductShippingMixin(models.Model):
+    shippings = models.CharField(max_length=500)
+
+    class Meta:
+        abstract = True
+
+
 extend_model(u'products.Product', ProductMixin)
+extend_model(u'products.Product', ProductShippingMixin)
