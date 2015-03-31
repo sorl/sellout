@@ -1,44 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from django_hstore.fields import DictionaryField
 from exmodel import Model
-
-
-
-class Properties(object):
-    """
-    Properties class
-    """
-    def __init__(self, *args, **kwargs):
-        self._field = kwargs['field']
-        self._field.set_default('items', [])
-        self._all = None
-
-    def __iter__(self):
-        return self.all()
-
-    def all(self):
-        if self._all == None:
-            property_ids = [x for x in self._field['items']]
-            self._all = Property.objects.filter(id__in=property_ids)
-        return self._all
-
-    def add(self, prop):
-        """
-        Adds a property to the underlying field
-        """
-        if prop.id not in self._field['items']:
-            self._field['items'].append(prop.id)
-            self._all = None
-
-    def remove(self, prop):
-        """
-        Removes a property from the underlying field
-        """
-        if prop.id in self._field['items']:
-            self._field['items'].remove(prop.id)
-            self._all = None
 
 
 
@@ -51,33 +14,13 @@ class Prototype(Model):
     modified_date = models.DateTimeField(_('modified date'), auto_now=True, null=True, blank=True)
     property_data = DictionaryField(_('properties'))
 
-    def __init__(self, *args, **kwargs):
-        super(Prototype, self).__init__(*args, **kwargs)
-        self._properties = Properties(field=self.property_data)
-
     def __unicode__(self):
         return self.name
-
-    @property
-    def properties(self):
-        """
-        Gets all the properties
-        """
-        return self._properties
-
-    @properties.setter
-    def properties(self, values):
-        """
-        Sets all the properties
-        """
-        self.property_data['items'] = [x.id for x in values]
-        self._properties = Properties(field=self.property_data)
 
     class Meta:
         app_label = 'sellout'
         verbose_name = _('prototype')
         verbose_name_plural = _('prototypes')
-
 
 
 class Property(Model):
@@ -101,9 +44,48 @@ class Property(Model):
 
     @value.setter
     def value(self, value):
-        return self._value = value
+        self._value = value
 
     class Meta:
         app_label = 'sellout'
         verbose_name = _('property')
         verbose_name_plural = _('properties')
+
+
+class PrototypeProperty(Model):
+    """
+    Prototype Property Model
+    """
+    property = models.ForeignKey('Property', verbose_name=_('property'), related_name='prototypes', db_index=True)
+    prototype = models.ForeignKey('Prototype', verbose_name=_('prototype'), related_name='properties', db_index=True)
+    position = models.IntegerField()
+
+    def __unicode__(self):
+        return u"{}.{}".format(self.prototype.name, self.property.name)
+
+    class Meta:
+        app_label = 'sellout'
+        verbose_name = _('prototype property')
+        verbose_name_plural = _('prototype properties')
+        unique_together = ('prototype', 'property')
+
+
+class ProductProperty(Model):
+    """
+    Product Property Model
+    """
+    property = models.ForeignKey('Property', verbose_name=_('property'), related_name='prototypes', db_index=True)
+    product = models.ForeignKey('Product', verbose_name=_('product'), related_name='properties', db_index=True)
+    value = models.CharField(_('value'))
+    position = models.IntegerField()
+
+    def __unicode__(self):
+        return u"{}.{}".format(self.product.name, self.property.name)
+
+    class Meta:
+        app_label = 'sellout'
+        verbose_name = _('product property')
+        verbose_name_plural = _('product properties')
+        unique_together = ('product', 'property')
+
+
