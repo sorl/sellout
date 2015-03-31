@@ -2,8 +2,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from django_hstore.fields import DictionaryField
+from exmodel import Model
 
-from sellout.base import ExtendableModel
 
 
 class Properties(object):
@@ -42,7 +42,7 @@ class Properties(object):
 
 
 
-class Prototype(ExtendableModel):
+class Prototype(Model):
     """
     Prototype Model
     """
@@ -80,7 +80,7 @@ class Prototype(ExtendableModel):
 
 
 
-class Property(ExtendableModel):
+class Property(Model):
     """
     Property Model
     """
@@ -107,6 +107,3 @@ class Property(ExtendableModel):
         app_label = 'sellout'
         verbose_name = _('property')
         verbose_name_plural = _('properties')
-
-
-
