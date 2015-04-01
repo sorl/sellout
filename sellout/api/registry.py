@@ -12,7 +12,6 @@ def add_endpoint(url, endpoint_class, fields=None):
 
     >>> add_endpoint(r'products/', ProductList)
     """
-    print "Register {}".format(url)
     fields = fields or {}
     ENDPOINTS[url] = dict(
         cls = endpoint_class,

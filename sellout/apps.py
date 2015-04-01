@@ -6,6 +6,5 @@ class SelloutConfig(AppConfig):
     verbose_name = 'Sellout'
 
     def ready(self):
-        print "App loaded"
-        #raise Exception("FUCK")
+        pass
 
