@@ -12,7 +12,6 @@ class Prototype(Model):
     name = models.CharField(max_length=255)
     created_date = models.DateTimeField(_('created date'), auto_now_add=True, null=True, blank=True)
     modified_date = models.DateTimeField(_('modified date'), auto_now=True, null=True, blank=True)
-    property_data = DictionaryField(_('properties'))
 
     def __unicode__(self):
         return self.name
@@ -74,9 +73,9 @@ class ProductProperty(Model):
     """
     Product Property Model
     """
-    property = models.ForeignKey('Property', verbose_name=_('property'), related_name='prototypes', db_index=True)
+    property = models.ForeignKey('Property', verbose_name=_('property'), related_name='products', db_index=True)
     product = models.ForeignKey('Product', verbose_name=_('product'), related_name='properties', db_index=True)
-    value = models.CharField(_('value'))
+    value = models.CharField(_('value'), max_length=255)
     position = models.IntegerField()
 
     def __unicode__(self):
