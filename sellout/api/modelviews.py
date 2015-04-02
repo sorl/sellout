@@ -1,10 +1,15 @@
+import six
 from restless import modelviews
 
+from sellout.api.views import EndpointMetaClass
 
-class ListEndpoint(modelviews.ListEndpoint):
+
+
+class ListEndpoint(six.with_metaclass(EndpointMetaClass, modelviews.ListEndpoint)):
     pass
 
 
 
-class DetailEndpoint(modelviews.ListEndpoint):
+class DetailEndpoint(six.with_metaclass(EndpointMetaClass, modelviews.DetailEndpoint)):
     pass
+

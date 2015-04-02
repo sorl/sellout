@@ -1,0 +1,12 @@
+#coding=utf-8
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+
+
+from sellout.products.models import Product
+
+
+def index(request):
+    product = Product()
+    return render_to_response('index.html', {}, RequestContext(request))
+
