@@ -20,14 +20,15 @@ class EndpointMetaClass(type):
                 setattr(obj, verb, decorated_func)
         verbs = attrs.get('login_required', [])
         for verb in verbs:
-            setattr(obj, verb) = login_required(getattr(obj, verb))
+            decorated_func = login_required(getattr(obj, verb))
+            setattr(obj, verb, decorated_func)
         return obj
 
 class EndpointMixin(object):
     """
     Mixes in some field functionality that we want
     """
-    def _get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         return super(EndpointMixin, self).get(request, *args, **kwargs)
 
 class Endpoint(six.with_metaclass(EndpointMetaClass, views.Endpoint)):
