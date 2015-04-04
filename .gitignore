@@ -1,0 +1,7 @@
+*.swp
+*.swo
+.~*
+._*
+*.pyc
+node_modules
+.DS_Store
