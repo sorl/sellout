@@ -2,7 +2,7 @@ import six
 
 from restless import views
 
-from sellout.api.auth import login_required, admin_required
+from sellout.api import auth
 
 
 class EndpointMetaClass(type):
@@ -13,15 +13,18 @@ class EndpointMetaClass(type):
         super_new = super(EndpointMetaClass, cls).__new__
         obj = super_new(cls, name, bases, attrs)
 
-        verbs = attrs.get('admin_required', [])
-        for verb in verbs:
-            if hasattr(obj, verb):
-                decorated_func = admin_required(getattr(obj, verb))
-                setattr(obj, verb, decorated_func)
-        verbs = attrs.get('login_required', [])
-        for verb in verbs:
-            decorated_func = login_required(getattr(obj, verb))
-            setattr(obj, verb, decorated_func)
+        # Support for the following syntax on endpoints:
+        #
+        #   `admin_required = ['put', 'delete']`
+        #   `login_required = ['get',]`
+        func_names = ['login_required', 'admin_required']
+        for func_name in func_names:
+            verbs = attrs.get(func_name,[])
+            for verb in verbs:
+                if hasattr(obj, verb):
+                    decorator_func = getattr(auth, func_name)
+                    decorated_func =  decorator_func(getattr(obj, verb))
+                    setattr(obj, verb, decorated_func)
         return obj
 
 class EndpointMixin(object):
