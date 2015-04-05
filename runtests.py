@@ -13,8 +13,8 @@ if not settings.configured:
         },
         INSTALLED_APPS=[
             'tests',
-            'sellout.core.products',
-            'sellout.core.orders',
+            'sellout.products',
+            'sellout.orders',
         ],
     )
 
