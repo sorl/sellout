@@ -6,8 +6,9 @@ from exmodel import Model
 
 
 class VariantManager(models.Manager):
-    qs = super(VariantManager, self).get_queryset()
-    return qs.select_related('product').prefetch_related('option_values__option')
+    def get_queryset(self):
+        qs = super(VariantManager, self).get_queryset()
+        return qs.select_related('product').prefetch_related('option_values__option')
 
 
 class VariantAvailableManager(VariantManager):
@@ -20,7 +21,7 @@ class VariantAvailableManager(VariantManager):
 class Variant(Model):
     removed = models.BooleanField(_('removed'), default=False)
     product = models.ForeignKey('Product', verbose_name=_('product'), related_name='variants')
-    sku = models.CharField(_('sku'), blank=True)
+    sku = models.CharField(_('sku'), max_length=500, blank=True)
     price = models.FloatField(_('price'))
     stock_count = models.IntegerField(_('stock count'), default=10)
     position = models.IntegerField(_('position'), default=0)

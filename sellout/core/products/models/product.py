@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-from denorm import CountField
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
@@ -26,7 +25,7 @@ class Product(Model):
     list_image = models.ImageField(_('list image'), upload_to='products', blank=True, help_text=_('image shown in the list view'))
     list_image_alt = models.CharField(_('list image alt'), max_length=500, blank=True, help_text=_('alt text for the list image'))
     display_price = models.FloatField(_('display price'), help_text=_('displayed price for the product in list view and before choosing variant'))
-    variant_count = CountField('variants', editable=False)
+    variant_count = models.PositiveIntegerField(editable=False)  # denorm variant count
     created = models.DateTimeField(auto_now_add=True, editable=False)
     updated = models.DateTimeField(auto_now=True, editable=False)
 
