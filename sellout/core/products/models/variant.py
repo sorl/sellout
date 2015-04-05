@@ -68,6 +68,7 @@ class OptionValue(models.Model):
         app_label = 'products'
         verbose_name = _('option value')
         verbose_name_plural = _('option value')
+        unique_together = (('variant', 'option'),)
         ordering = ('position',)
 
     def __str__(self):
