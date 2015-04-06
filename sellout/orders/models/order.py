@@ -41,7 +41,6 @@ class OrderManager(models.Manager):
 @python_2_unicode_compatible
 class Order(Model):
     number = models.CharField(_('order number'), max_length=500)
-    locked = models.BooleanField(_('locked'), default=False)
     state = models.CharField(_('state'), max_length=500, choices=ORDER_STATES, default='cart')
     payment_state = models.CharField(_('payment state'), max_length=500, choices=PAYMENT_STATES, default='checkout')
     shipment_state = models.CharField(_('shipping state'), max_length=500, blank=True, choices=SHIPMENT_STATES, default='')
@@ -93,9 +92,6 @@ class Order(Model):
         return self.number
 
     def set_calculated_fields(self):
-        # do not update fields if order is locked
-        if self.locked:
-            return
         self.item_count = 0
         self.product_total_tax_excl = 0
         self.product_total_tax_incl = 0
@@ -106,6 +102,7 @@ class Order(Model):
 
 
 class OrderLine(Model):
+    locked = models.BooleanField(_('locked'), default=False)
     order = models.ForeignKey('Order', verbose_name=_('order'), related_name='order_lines')
     variant = models.ForeignKey('products.Variant', verbose_name=_('variant'))
     quantity = models.PositiveIntegerField(_('quantity'), default=1)
@@ -126,8 +123,8 @@ class OrderLine(Model):
         return self.quantity * self.price_tax_incl
 
     def set_calculated_fields(self):
-        # do not update fields if order is locked
-        if self.order.locked:
+        # do not update fields if order line is locked
+        if self.locked:
             return
         self.name = self.variant.name
         self.price_tax_excl = self.variant.price_tax_excl

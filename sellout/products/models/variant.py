@@ -39,13 +39,6 @@ class Variant(Model):
     def __str__(self):
         return '%s %s' % (self.product, self.sku)
 
-    @property
-    def name(self):
-        parts = [self.product.name]
-        for v in self.option_values.all():
-            parts.append(v.value)
-        return ' '.join(parts)
-
     def get_tax_rate(self):
         if self.tax_rate is None:
             return settings.SELLOUT_DEFAULT_SALES_TAX
@@ -62,6 +55,12 @@ class Variant(Model):
         if settings.SELLOUT_PRICES_INCLUDE_SALES_TAX:
             return self.price
         return self.price * (1 + self.get_tax_rate())
+
+    def set_calculated_fields(self):
+        parts = [self.product.name]
+        for v in self.option_values.all():
+            parts.append(v.value)
+        self.name = ' '.join(parts)
 
 
 @python_2_unicode_compatible
