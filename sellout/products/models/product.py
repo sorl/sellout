@@ -5,11 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from exmodel import Model
 
 
-class ProductManager(models.Manager):
-    pass
-
-
-class ProductAvailableManager(ProductManager):
+class ProductAvailableManager(models.Manager):
     def get_queryset(self):
         qs = super(ProductAvailableManager, self).get_queryset()
         return qs.filter(removed=False)
@@ -29,8 +25,7 @@ class Product(Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     updated = models.DateTimeField(auto_now=True, editable=False)
 
-    objects = ProductManager()
-    all_objects = models.Manager()
+    objects = models.Manager()
     available = ProductAvailableManager()
 
     class Meta:

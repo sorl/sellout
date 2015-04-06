@@ -15,10 +15,10 @@ class VariantAvailableManager(models.Manager):
 @python_2_unicode_compatible
 class Variant(Model):
     removed = models.BooleanField(_('removed'), default=False)
-    product = models.ForeignKey('Product', verbose_name=_('product'), related_name='variants')
+    product = models.ForeignKey('products.Product', verbose_name=_('product'), related_name='variants')
     sku = models.CharField(_('sku'), max_length=500, blank=True)
     price = models.FloatField(_('price'))
-    tax_rate = models.FloatField(_('sales tax rate'), blank=True, null=True, default=None)
+    tax_rate_percent = models.FloatField(_('tax rate'), blank=True, null=True, default=None, help_text=_('sales tax in percent, empty uses shop default rate'))
     stock_count = models.IntegerField(_('stock count'), default=10)
     position = models.IntegerField(_('position'), default=0)
 
@@ -57,40 +57,11 @@ class Variant(Model):
         return self.price * (1 + self.get_tax_rate())
 
     def set_calculated_fields(self):
+        """
+        Depends: ``self.product.name``
+        Depends: ``self.option_values.all()``
+        """
         parts = [self.product.name]
         for v in self.option_values.all():
             parts.append(v.value)
         self.name = ' '.join(parts)
-
-
-@python_2_unicode_compatible
-class Option(models.Model):
-    name = models.CharField(_('name'), max_length=500)
-    position = models.IntegerField(_('position'), default=0)
-
-    class Meta:
-        app_label = 'products'
-        verbose_name = _('option')
-        verbose_name_plural = _('options')
-        ordering = ('position', 'name')
-
-    def __str__(self):
-        return self.name
-
-
-@python_2_unicode_compatible
-class OptionValue(models.Model):
-    variant = models.ForeignKey('Variant', verbose_name=_('variant'), related_name='option_values')
-    option = models.ForeignKey('Option', verbose_name=_('option'))
-    value = models.CharField(_('value'), max_length=500)
-    position = models.IntegerField(_('position'), default=0)
-
-    class Meta:
-        app_label = 'products'
-        verbose_name = _('option value')
-        verbose_name_plural = _('option value')
-        unique_together = (('variant', 'option'),)
-        ordering = ('position',)
-
-    def __str__(self):
-        return '%s - %s' % (self.option, self.value)

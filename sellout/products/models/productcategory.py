@@ -6,18 +6,16 @@ from exmodel import Model
 
 
 @python_2_unicode_compatible
-class Category(Model):
-    parent = models.ForeignKey('self', verbose_name=_('parent'), blank=True, null=True)
-    name = models.CharField(_('name'), max_length=500)
-    slug = models.SlugField(_('slug'), max_length=500)
-    description = models.TextField(_('description'), blank=True)
+class ProductCategory(Model):
+    category = models.ForeignKey('Category', verbose_name=_('category'))
+    product = models.ForeignKey('products.Product', verbose_name=_('product'))
     position = models.IntegerField(_('position'), default=0)
 
     class Meta:
         app_label = 'products'
-        verbose_name = _('category')
-        verbose_name_plural = _('categories')
+        verbose_name = _('product category link')
+        verbose_name_plural = _('product category links')
         ordering = ('position',)
 
     def __str__(self):
-        return self.name
+        return '%s - %s' % (self.product, self.category)

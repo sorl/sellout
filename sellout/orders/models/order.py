@@ -35,7 +35,7 @@ SHIPMENT_STATES = (
 class OrderManager(models.Manager):
     def get_queryet(self):
         qs = super(OrderManager, self).get_queryet()
-        return qs.prefetch_related('order_lines')
+        return qs.prefetch_related('orderlines')
 
 
 @python_2_unicode_compatible
@@ -73,10 +73,6 @@ class Order(Model):
     shipping_state = models.CharField(_('shipping state'), max_length=500, blank=True)
     shipping_country = models.CharField(_('shipping country'), max_length=500, blank=True)
 
-    # calculated fields
-    item_count = models.PositiveIntegerField(editable=False)
-    product_total_tax_excl = models.FloatField(_('product total tax excluded'), default=0)
-    product_total_tax_incl = models.FloatField(_('product total tax included'), default=0)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     updated = models.DateTimeField(auto_now=True, editable=False)
 
@@ -91,46 +87,16 @@ class Order(Model):
     def __str__(self):
         return self.number
 
-    def set_calculated_fields(self):
-        self.item_count = 0
-        self.product_total_tax_excl = 0
-        self.product_total_tax_incl = 0
-        for line in self.order_lines.all():
-            self.item_count += line.quantity
-            self.product_total_tax_excl += line.price_tax_excl * line.quantity
-            self.product_total_tax_incl += line.price_tax_incl * line.quantity
-
-
-class OrderLine(Model):
-    locked = models.BooleanField(_('locked'), default=False)
-    order = models.ForeignKey('Order', verbose_name=_('order'), related_name='order_lines')
-    variant = models.ForeignKey('products.Variant', verbose_name=_('variant'))
-    quantity = models.PositiveIntegerField(_('quantity'), default=1)
-
-    # calculated fields
-    name = models.CharField(_('name'), max_length=500)  # calculated
-    price_tax_excl = models.FloatField(_('price tax excluded'))  # calculated
-    price_tax_incl = models.FloatField(_('price tax included'))  # calculated
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    updated = models.DateTimeField(auto_now=True, editable=False)
+    @property
+    def product_total_tax_excl(self):
+        s = 0
+        for line in self.orderlines.all():
+            s += line.total_tax_excl
+        return s
 
     @property
-    def total_tax_excl(self):
-        return self.quantity * self.price_tax_excl
-
-    @property
-    def total_tax_incl(self):
-        return self.quantity * self.price_tax_incl
-
-    def set_calculated_fields(self):
-        # do not update fields if order line is locked
-        if self.locked:
-            return
-        self.name = self.variant.name
-        self.price_tax_excl = self.variant.price_tax_excl
-        self.price_tax_incl = self.variant.price_tax_incl
-
-    class Meta:
-        app_label = 'products'
-        verbose_name = _('order line')
-        verbose_name_plural = _('order lines')
+    def product_total_tax_incl(self):
+        s = 0
+        for line in self.orderlines.all():
+            s += line.total_tax_incl
+        return s
