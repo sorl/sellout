@@ -10,20 +10,11 @@ class CartItem(Model):
     cart = models.ForeignKey('carts.Cart', verbose_name=_('cart'), related_name='cartitems')
     variant = models.ForeignKey('products.Variant', verbose_name=_('variant'))
     quantity = models.PositiveIntegerField(_('quantity'), default=1)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    updated = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         app_label = 'carts'
         verbose_name = _('cart item')
         verbose_name_plural = _('cart items')
-
-    @property
-    def name(self):
-        return self.variant.name
-
-    @property
-    def price(self):
-        return self.variant.price
-
-    @property
-    def total(self):
-        return self.price * self.quantity
+        ordering = ('-created',)
