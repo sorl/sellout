@@ -26,8 +26,9 @@ class CartManager(models.Manager):
                 'variant_id': item.variant_id,
                 'product_id': item.variant.product_id,
                 'product_slug': item.variant.product.slug,
-                'price': item.variant.price,
                 'name': item.variant.name,
+                'price': item.variant.price,
+                'quantity': item.quantity,
                 'subtotal': subtotal,
             })
         cache.set(cache_key, data, 24 * 3600)
