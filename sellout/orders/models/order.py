@@ -41,19 +41,17 @@ class OrderManager(models.Manager):
 @python_2_unicode_compatible
 class Order(Model):
     number = models.CharField(_('order number'), max_length=500)
-
+    locked = models.BooleanField(_('locked'), default=False)
     state = models.CharField(_('state'), max_length=500, choices=ORDER_STATES, default='cart')
     payment_state = models.CharField(_('payment state'), max_length=500, choices=PAYMENT_STATES, default='checkout')
     shipment_state = models.CharField(_('shipping state'), max_length=500, blank=True, choices=SHIPMENT_STATES, default='')
     shipping_method = models.CharField(_('shipping method'), max_length=500, blank=True)
     special_instructions = models.TextField(_('special instructions'), blank=True)
-
-    product_total_no_tax = models.FloatField(_('product total with out tax'), default=0)
-    product_total_with_tax = models.FloatField(_('product total with tax'), default=0)
-    shipping_total_no_tax = models.FloatField(_('shipping total with out tax'), default=0)
-    shipping_total_with_tax = models.FloatField(_('shipping total with tax'), default=0)
-    grand_total_no_tax = models.FloatField(_('grand total with out tax'), default=0)
-    grand_total_with_tax = models.FloatField(_('grand total with tax'), default=0)
+    shipping_total_tax_excl = models.FloatField(_('shipping total tax excluded'), default=0)
+    shipping_total_tax_incl = models.FloatField(_('shipping total tax included'), default=0)
+    grand_total_tax_incl = models.FloatField(_('grand total with tax excluded'), default=0)
+    grand_total_tax_excl = models.FloatField(_('grand total with tax included'), default=0)
+    discount = models.FloatField(_('discount'), default=0)
 
     email = models.EmailField(_('email'), max_length=500, blank=True)
     phone = models.CharField(_('phone number'), max_length=500, blank=True)
@@ -76,7 +74,10 @@ class Order(Model):
     shipping_state = models.CharField(_('shipping state'), max_length=500, blank=True)
     shipping_country = models.CharField(_('shipping country'), max_length=500, blank=True)
 
-    item_count = models.PositiveIntegerField(editable=False)  # denorm item count for cart
+    # calculated fields
+    item_count = models.PositiveIntegerField(editable=False)
+    product_total_tax_excl = models.FloatField(_('product total tax excluded'), default=0)
+    product_total_tax_incl = models.FloatField(_('product total tax included'), default=0)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     updated = models.DateTimeField(auto_now=True, editable=False)
 
@@ -91,16 +92,46 @@ class Order(Model):
     def __str__(self):
         return self.number
 
+    def set_calculated_fields(self):
+        # do not update fields if order is locked
+        if self.locked:
+            return
+        self.item_count = 0
+        self.product_total_tax_excl = 0
+        self.product_total_tax_incl = 0
+        for line in self.order_lines.all():
+            self.item_count += line.quantity
+            self.product_total_tax_excl += line.price_tax_excl * line.quantity
+            self.product_total_tax_incl += line.price_tax_incl * line.quantity
+
 
 class OrderLine(Model):
-    locked = models.BooleanField(_('locked'), default=False)
     order = models.ForeignKey('Order', verbose_name=_('order'), related_name='order_lines')
     variant = models.ForeignKey('products.Variant', verbose_name=_('variant'))
-    name = models.CharField(_('name'), max_length=500)
     quantity = models.PositiveIntegerField(_('quantity'), default=1)
-    prince = models.FloatField(_('price'))
+
+    # calculated fields
+    name = models.CharField(_('name'), max_length=500)  # calculated
+    price_tax_excl = models.FloatField(_('price tax excluded'))  # calculated
+    price_tax_incl = models.FloatField(_('price tax included'))  # calculated
     created = models.DateTimeField(auto_now_add=True, editable=False)
     updated = models.DateTimeField(auto_now=True, editable=False)
+
+    @property
+    def total_tax_excl(self):
+        return self.quantity * self.price_tax_excl
+
+    @property
+    def total_tax_incl(self):
+        return self.quantity * self.price_tax_incl
+
+    def set_calculated_fields(self):
+        # do not update fields if order is locked
+        if self.order.locked:
+            return
+        self.name = self.variant.name
+        self.price_tax_excl = self.variant.price_tax_excl
+        self.price_tax_incl = self.variant.price_tax_incl
 
     class Meta:
         app_label = 'products'
